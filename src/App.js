@@ -82,7 +82,7 @@ class Home extends Component {
                 <h3>Home</h3>
 
                 {items.map(item => (
-                    <Link to={'/detail'} id={item.id} key={item.label} name={item.label}/>
+                    <Link to={'/home/:id'} id={item.id} key={item.label} name={item.label}/>
                     // <Link to={'/home/#' + item.id} key={item.label} name={item.label}/>
                 ))}
             </div>
@@ -96,6 +96,7 @@ class Detail extends Component {
         super(props);
     }
 
+    // todo: delete cycle and refactor the items
     getItemById = (id, items) => {
         let index = 0;
 
@@ -225,11 +226,15 @@ pages = {
     '/home': {
         component: <Home mergeState={store.mergeState.bind(store)}/>
     },
-    '/detail': {
+    '/home/:id': {
         component: <Detail mergeState={store.mergeState.bind(store)}/>
     },
 
 };
+
+function changeUrl ( path ) {
+    window.history.pushState(null, null, path);
+}
 
 class App extends Component {
     constructor(props) {
@@ -255,26 +260,36 @@ class App extends Component {
 
     render() {
         let pathname = window.location.pathname,
-            page = <p>Page not found...</p>;
+            page = <p>Page not found...</p>,
+            hash = window.location.hash,
+            pageName;
 
         const {error, isLoaded} = this.state;
 
+        // console.log(window.location)
         store.mergeState.call(store, this.state);
-
-        pathname = (pathname === '/') ? '/home' : pathname.replace(/\/$/, "");
 
         if (error) {
             return <div>Error: {error.message}</div>;
         } else if (!isLoaded) {
             return <div>Loading...</div>;
         } else {
+            pathname = (pathname === '/') ? pathname : pathname.replace(/\/$/, "");
 
-            if (pathname in pages) {
-                page = pages[pathname].component;
-            } else if (pathname === '/') {
-                // todo: redirect from '/' to '/home'
-                // window.history.pushState(null, null, '/home');
-                page = pages['/home'].component;
+            console.log('pathname: ', pathname);
+            console.log('hash: ', hash);
+
+            if (pathname === '/home' && hash) {
+                changeUrl(pathname + '/' + hash);
+                page = pages['/home/:id'].component;
+            } else {
+                if (pathname === '/') {
+                    pageName = '/home';
+                    changeUrl(pageName);
+                    page = pages[pageName].component;
+                } else if (pathname in pages) {
+                    page = pages[pathname].component;
+                }
             }
         }
 
