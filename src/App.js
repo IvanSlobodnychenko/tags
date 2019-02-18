@@ -37,30 +37,63 @@ class Link extends Component {
         }
     }
 
+
     route = (link) => {
-        window.history.pushState(null, null, link);
-        ReactDOM.render(pages['/home'].component, document.getElementById('root'));
+        console.log('call link', link);
+        let id = this.props.id ? '/#' + this.props.id : '';
+
+
+        // if (link === '/home') {
+        //     window.history.pushState(null, null, '/home');
+        //     ReactDOM.render(pages['/home'].component, document.getElementById('root'));
+        // } else { // add id
+        //     window.history.pushState(null, null, '/home/#1751295897__Odessa');
+        //     ReactDOM.render(pages['/detail'].component, document.getElementById('root'));
+        // }
+
+        if ( link in pages ) {
+            window.history.pushState(null, null, '/home' + id);
+            ReactDOM.render(pages[link].component, document.getElementById('root'));
+        }
     };
-
-// <Link to={'/home/#' + item.id} text={item.label}/>
-
 
     render() {
         return (
-            <button onClick={() => { this.route(this.state.link) }} key={this.state.name}>
+            <button onClick={() => {
+                this.route(this.state.link)
+            }} key={this.state.name}>
                 {this.state.name}
             </button>
         );
     }
 }
 
-
 class Home extends Component {
     constructor(props) {
         super(props);
-        this.state = {
-            // hash: window.location.hash
-        };
+    }
+
+    render() {
+        let {items} = store.getState();
+
+        return (
+            <div>
+                {/*<Link to={'/detail'} key={'Detail'} name={'Detail'}/>*/}
+                <h3>Home</h3>
+
+                {items.map(item => (
+                    <Link to={'/detail'} id={item.id} key={item.label} name={item.label}/>
+                    // <Link to={'/home/#' + item.id} key={item.label} name={item.label}/>
+                ))}
+            </div>
+        )
+    };
+}
+
+
+class Detail extends Component {
+    constructor(props) {
+        super(props);
     }
 
     getItemById = (id, items) => {
@@ -81,64 +114,120 @@ class Home extends Component {
             hash = window.location.hash,
             item, id;
 
-        console.log('hash: ' + hash);
         if (hash) {
-            // get rid of hash symbol
-            id = hash.slice(1);
-
+            // get rid of hash
+            id = decodeURI(hash.slice(1));
             item = this.getItemById(id, items);
-
-            console.log('item: ', item);
-
-            if (item) {
-                console.log('load detail');
-                return <Detail mergeState={store.mergeState.bind(store)} id={id} item={item}/>
-            }
         }
 
-        console.log('load home');
+        if (item) {
+            return (
+                <div>
+                    <Link to={'/home'} key={'Home'} name={'Home'}/>
+                    <h3>Detail</h3>
+                    <p>{item.id}</p>
+                    <p>{item.label}</p>
+                </div>
+            )
+        }
 
         return (
             <div>
-                {items.map(item => (
-                    <Link to={'/home/#' + item.id} key={item.label} name={item.label}/>
-                ))}
-            </div>
-        );
-    }
-}
-
-
-class Detail extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            id: props.id,
-            item: props.item
-        }
-    }
-
-    render() {
-        let item = this.state.item;
-
-        return (
-            <div>
-                <Link to={'/home'} name={'Home'}/>
-
-                <h3>{item.id}</h3>
-                <p>{item.type}</p>
+                <Link to={'/home'} key={'Home'} name={'Home'}/>
+                <h3>Detail</h3>
+                <p>nothing to show</p>
             </div>
         )
     };
 }
 
+// class Home extends Component {
+//     constructor(props) {
+//         super(props);
+//         this.state = {
+//             // hash: window.location.hash
+//         };
+//     }
+//
+//
+//     getItemById = (id, items) => {
+//         let index = 0;
+//
+//         for (index; index < items.length; index++) {
+//             console.log((items[index].id === id), items[index].id, id);
+//             if (items[index].id === id) {
+//                 return items[index];
+//             }
+//         }
+//
+//         return null;
+//     };
+//
+//     render() {
+//         let {items} = store.getState(),
+//             hash = window.location.hash,
+//             item, id;
+//
+//         console.log('hash: ' + hash);
+//
+//         if (hash) {
+//             // get rid of hash symbol
+//             id = hash.slice(1);
+//
+//             item = this.getItemById(id, items);
+//
+//             console.log('item: ', item);
+//
+//             if (item) {
+//                 console.log('load detail');
+//                 return <Detail mergeState={store.mergeState.bind(store)} id={id} item={item}/>
+//             }
+//         }
+//
+//         console.log('load home');
+//
+//         return (
+//             <div>
+//                 {items.map(item => (
+//                     <Link to={'/home/#' + item.id} key={item.label} name={item.label}/>
+//                 ))}
+//             </div>
+//         );
+//     }
+// }
+//
+//
+// class Detail extends Component {
+//     constructor(props) {
+//         super(props);
+//         this.state = {
+//             id: props.id,
+//             item: props.item
+//         }
+//     }
+//
+//     render() {
+//         let item = this.state.item;
+//
+//         return (
+//             <div>
+//                 <Link to={'/home'} key={'Home'} name={'Home'}/>
+//
+//                 <h3>{item.id}</h3>
+//                 <p>{item.type}</p>
+//             </div>
+//         )
+//     };
+// }
+
+
 pages = {
     '/home': {
         component: <Home mergeState={store.mergeState.bind(store)}/>
-    }
-    // '/detail': {
-    //     component: <Detail mergeState={store.mergeState.bind(store)}/>
-    // },
+    },
+    '/detail': {
+        component: <Detail mergeState={store.mergeState.bind(store)}/>
+    },
 
 };
 
@@ -165,26 +254,31 @@ class App extends Component {
     }
 
     render() {
-        let pathname = window.location.pathname.replace(/\/$/, ""),
+        let pathname = window.location.pathname,
             page = <p>Page not found...</p>;
 
         const {error, isLoaded} = this.state;
 
         store.mergeState.call(store, this.state);
 
-        console.log(window.location);
+        pathname = (pathname === '/') ? '/home' : pathname.replace(/\/$/, "");
 
         if (error) {
             return <div>Error: {error.message}</div>;
         } else if (!isLoaded) {
             return <div>Loading...</div>;
-        } else if (pathname in pages) {
-            page = pages[pathname].component;
+        } else {
+
+            if (pathname in pages) {
+                page = pages[pathname].component;
+            } else if (pathname === '/') {
+                // todo: redirect from '/' to '/home'
+                // window.history.pushState(null, null, '/home');
+                page = pages['/home'].component;
+            }
         }
 
         return (page);
-
-        // todo: redirect from '/' to '/home'
     }
 }
 
