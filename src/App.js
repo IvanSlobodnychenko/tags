@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-// import logo from './logo.svg';
 import './App.css';
 import ReactDOM from "react-dom";
 // import Tag from './components/tag';
@@ -37,9 +36,7 @@ class Link extends Component {
 
     render() {
         return (
-            <button onClick={() => {
-                this.route(this.state.link)
-            }} key={this.state.name}>
+            <button onClick={() => {this.route(this.state.link)}} key={this.state.name}>
                 {this.state.name}
             </button>
         );
@@ -48,10 +45,6 @@ class Link extends Component {
 
 
 class Home extends Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         let {items} = store.getState();
 
@@ -69,10 +62,6 @@ class Home extends Component {
 
 
 class Detail extends Component {
-    constructor(props) {
-        super(props);
-    }
-
     // todo: delete cycle and refactor the items
     getItemById = (id, items) => {
         let index = 0;
@@ -125,7 +114,11 @@ pages = {
         component: <Home mergeState={store.mergeState.bind(store)}/>,
         load: function () {
             changeUrl('/home');
-            history[window.location.href] = this.component;
+            // history[window.location.href] = this.component;
+            history.push({
+                href: window.location.href,
+                component: this.component
+            });
             console.log('history', history);
             return this.component;
         }
@@ -134,7 +127,13 @@ pages = {
         component: <Home mergeState={store.mergeState.bind(store)}/>,
         load: function () {
             // history.push(window.location.href, this.component);
-            history[window.location.href] = this.component;
+            // history[window.location.href] = this.component;
+            // history.push(this.component);
+            history.push({
+                href: window.location.href,
+                component: this.component
+            });
+
             console.log('history', history);
             return this.component;
         }
@@ -144,7 +143,8 @@ pages = {
         load: function (path) {
             console.log('load path: ' + path)
             changeUrl(path);
-            history[window.location.href] = this.component;
+            // history[window.location.href] = this.component;
+            // history.push(this.component);
             console.log('history', history);
             return this.component;
         }
@@ -191,8 +191,8 @@ class App extends Component {
         const {error, isLoaded} = this.state;
 
         let pathname = window.location.pathname,
-            page = <p>Page not found...</p>,
             hash = window.location.hash,
+            page = <p>Page not found...</p>,
             pageName;
 
         store.mergeState.call(store, this.state);
@@ -213,11 +213,21 @@ class App extends Component {
         return (page);
     }
 }
+var index = 0;
 
-window.onpopstate = function(event) {
-    // console.log("document.location.href: ", document.location.href, ", state: " + JSON.stringify(event.state));
-    // console.log('history[document.location.href]: ' + history[window.location.href]);
-    ReactDOM.render(history[window.location.href], document.getElementById('root'));
+window.onpopstate = function() {
+    var href = document.location.href;
+
+        // ReactDOM.render(history[href], document.getElementById('root'));
+
+        if ( href === history[history.length - 1].href ) {
+            ReactDOM.render(history[history.length - 1].component, document.getElementById('root'));
+            index++;
+        } else {
+            ReactDOM.render(history[index].component, document.getElementById('root'));
+            index--;
+        }
+    // ReactDOM.render(history[index], document.getElementById('root'));
 };
 
 
