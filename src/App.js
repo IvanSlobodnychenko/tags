@@ -1,13 +1,14 @@
 import React, {Component} from 'react';
 import './App.css';
 import ReactDOM from "react-dom";
-// import Tag from './components/tag';
+// import Link from './components/link';
 import Store from './store';
 
 
 var url = 'https://gist.githubusercontent.com/snownoop/e6ca04705cf03cbe6ef9beaf16a306ab/raw/07906333730ca961a8091a8c16b05d26a8ee7cd9/Tags%2520Cloud%2520Data',
     store = new Store(),
     history = [],
+    index = 0,
     pages;
 
 
@@ -114,38 +115,38 @@ pages = {
         component: <Home mergeState={store.mergeState.bind(store)}/>,
         load: function () {
             changeUrl('/home');
-            // history[window.location.href] = this.component;
+
             history.push({
                 href: window.location.href,
                 component: this.component
             });
-            console.log('history', history);
+
             return this.component;
         }
     },
     '/home': {
         component: <Home mergeState={store.mergeState.bind(store)}/>,
         load: function () {
-            // history.push(window.location.href, this.component);
-            // history[window.location.href] = this.component;
-            // history.push(this.component);
+            changeUrl('/home');
+
             history.push({
                 href: window.location.href,
                 component: this.component
             });
 
-            console.log('history', history);
             return this.component;
         }
     },
     '/home/:id': {
         component: <Detail mergeState={store.mergeState.bind(store)}/>,
         load: function (path) {
-            console.log('load path: ' + path)
             changeUrl(path);
-            // history[window.location.href] = this.component;
-            // history.push(this.component);
-            console.log('history', history);
+
+            history.push({
+                href: window.location.href,
+                component: this.component
+            });
+
             return this.component;
         }
     },
@@ -213,21 +214,17 @@ class App extends Component {
         return (page);
     }
 }
-var index = 0;
 
 window.onpopstate = function() {
     var href = document.location.href;
 
-        // ReactDOM.render(history[href], document.getElementById('root'));
-
-        if ( href === history[history.length - 1].href ) {
-            ReactDOM.render(history[history.length - 1].component, document.getElementById('root'));
-            index++;
-        } else {
-            ReactDOM.render(history[index].component, document.getElementById('root'));
-            index--;
-        }
-    // ReactDOM.render(history[index], document.getElementById('root'));
+    if ( href === history[history.length - 1].href ) {
+        ++index;
+        ReactDOM.render(history[history.length - 1].component, document.getElementById('root'));
+    } else {
+        --index;
+        ReactDOM.render(history[index].component, document.getElementById('root'));
+    }
 };
 
 
