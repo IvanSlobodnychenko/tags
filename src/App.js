@@ -18,7 +18,7 @@ class App extends Component {
             .then(data => {
                 this.setState({
                     isLoaded: true,
-                    items: data
+                    tags: data
                 });
             }).catch(error => {
             this.setState({
@@ -50,7 +50,7 @@ class App extends Component {
 
                     <hr/>
 
-                    <Redirect from="/" to="/home" />
+                    <Redirect from="/" to="/home"/>
                     <Route exact path="/home"
                            render={(props) => <Home {...props} mergeState={store.mergeState.bind(store)}/>}/>
                     <Route path="/home/:id"
@@ -64,18 +64,18 @@ class App extends Component {
 
 class Home extends Component {
     render() {
-        let {items} = store.getState();
+        let {tags} = store.getState();
 
         return (
             <div>
                 <h3>Home Page</h3>
 
-                {items.map(item => (
+                {tags.map(tag => (
                     <button
                         className={'tag-button'}
-                        style={{fontSize: item.sentimentScore > 1 ? item.sentimentScore * 0.4 : 12}}
-                        key={item.id}>
-                        <Link to={`${this.props.match.url}/${item.id}`}>{item.label}</Link>
+                        style={{fontSize: tag.sentimentScore > 1 ? tag.sentimentScore * 0.4 : 12}}
+                        key={tag.id}>
+                        <Link to={`${this.props.match.url}/${tag.id}`}>{tag.label}</Link>
                     </button>
                 ))}
             </div>
@@ -85,40 +85,28 @@ class Home extends Component {
 
 
 class Detail extends Component {
-    getItemById = (id, items) => {
-        let index = 0;
-
-        for (index; index < items.length; index++) {
-            if (items[index].id === id) {
-                return items[index];
-            }
-        }
-
-        return null;
-    };
-
     render() {
-        let {items} = store.getState(),
-            item = this.getItemById(this.props.match.params.id, items);
+        let {tags} = store.getState(),
+            tag = tags.find(item => item.id === this.props.match.params.id);
 
-        if (item) {
+        if (tag) {
             return (
                 <div>
-                    <h3 key={item.label}>{item.label}</h3>
+                    <h3 key={tag.label}>{tag.label}</h3>
 
                     <ul>
-                        <li key={'total'}>total props: {Object.keys(item).length - 1}</li>
+                        <li key={'total'}>total props: {Object.keys(tag).length - 1}</li>
                     </ul>
 
                     <ul>
-                        {Object.keys(item.sentiment).map(key => (
-                            <li key={key}>{key}: {item.sentiment[key]}</li>
+                        {Object.keys(tag.sentiment).map(key => (
+                            <li key={key}>{key}: {tag.sentiment[key]}</li>
                         ))}
                     </ul>
 
                     <ul>
-                        {Object.keys(item.pageType).map(key => (
-                            <li key={key}>{key}: {item.pageType[key]}</li>
+                        {Object.keys(tag.pageType).map(key => (
+                            <li key={key}>{key}: {tag.pageType[key]}</li>
                         ))}
                     </ul>
                 </div>
