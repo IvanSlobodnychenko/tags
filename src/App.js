@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {BrowserRouter as Router, Route, Redirect, Link} from "react-router-dom";
+import {BrowserRouter as Router, Route, Link} from "react-router-dom";
 import Store from './store';
 
 
@@ -44,17 +44,13 @@ class App extends Component {
                 <div>
                     <ul>
                         <li>
-                            <Link to="/home">Home</Link>
+                            <Link to="/">Home</Link>
                         </li>
                     </ul>
 
                     <hr/>
 
-                    <Redirect from="/" to="/home"/>
-                    <Route exact path="/home"
-                           render={(props) => <Home {...props} mergeState={store.mergeState.bind(store)}/>}/>
-                    <Route path="/home/:id"
-                           render={(props) => <Detail {...props} mergeState={store.mergeState.bind(store)}/>}/>
+                    <Route exact path="/" render={(props) => <Home {...props} mergeState={store.mergeState.bind(store)}/>}/>
                 </div>
             </Router>
         )
@@ -64,7 +60,12 @@ class App extends Component {
 
 class Home extends Component {
     render() {
-        let {tags} = store.getState();
+        let {tags} = store.getState(),
+            hash = this.props.location.hash;
+
+        if (hash) {
+            return <Detail id={hash.substring(1)} mergeState={store.mergeState.bind(store)}/>;
+        }
 
         return (
             <div>
@@ -75,7 +76,10 @@ class Home extends Component {
                         className={'tag-button'}
                         style={{fontSize: tag.sentimentScore > 1 ? tag.sentimentScore * 0.4 : 12}}
                         key={tag.id}>
-                        <Link to={`${this.props.match.url}/${tag.id}`}>{tag.label}</Link>
+                        <Link to={{
+                            pathname: this.props.match.url,
+                            hash: tag.id
+                        }}>{tag.label}</Link>
                     </button>
                 ))}
             </div>
@@ -87,7 +91,7 @@ class Home extends Component {
 class Detail extends Component {
     render() {
         let {tags} = store.getState(),
-            tag = tags.find(item => item.id === this.props.match.params.id);
+            tag = tags.find(item => item.id === this.props.id);
 
         if (tag) {
             return (
@@ -100,8 +104,8 @@ class Detail extends Component {
 
                     <ul>
                         {Object.keys(tag.sentiment).map(key => (
-                            <li key={key}>{key}: {tag.sentiment[key]}</li>
-                        ))}
+                        <li key={key}>{key}: {tag.sentiment[key]}</li>
+                    ))}
                     </ul>
 
                     <ul>
